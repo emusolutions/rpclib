@@ -1,5 +1,11 @@
-cmake_minimum_required(VERSION 3.9.0)
-project(rpc VERSION 2.2.1)
+cmake_minimum_required(VERSION 3.3.1)
+set(MAJOR 2)
+set(MINOR 2)
+set(PATCH 1)
+
+project(rpc VERSION ${MAJOR}.${MINOR}.${PATCH})
+
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
@@ -8,36 +14,46 @@ include(msvc_support)
 include(coverage)
 include(check_warning_flag)
 
+if (CMAKE_INSTALL_LIBDIR)
+   get_filename_component(LIBDIR "${CMAKE_INSTALL_LIBDIR}" NAME)
+   message("set LIBDIR=${LIBDIR}")
+endif ()
+
+if (NOT LIBDIR)
+   set(LIBDIR "lib")
+   message("set LIBDIR=${LIBDIR}")
+endif ()
+
 #
 # Options
 #
-option(RPCLIB_BUILD_TESTS 
-  "Build unit RPCLIB_BUILD_TESTS." 
+option(RPCLIB_BUILD_TESTS
+  "Build unit RPCLIB_BUILD_TESTS."
   OFF)
-option(RPCLIB_GENERATE_COMPDB 
-  "Generate compilation database. Useful for YCM." 
+option(RPCLIB_GENERATE_COMPDB
+  "Generate compilation database. Useful for YCM."
   OFF)
-option(RPCLIB_BUILD_EXAMPLES 
-  "Build examples." 
+option(RPCLIB_BUILD_EXAMPLES
+  "Build examples."
   OFF)
-option(RPCLIB_ENABLE_LOGGING 
+option(RPCLIB_ENABLE_LOGGING
   "ALlow logging in the library for debug purposes."
   OFF)
-option(RPCLIB_ENABLE_COVERAGE 
-  "Generate coverage information" 
+option(RPCLIB_ENABLE_COVERAGE
+  "Generate coverage information"
   OFF)
-option(RPCLIB_MSVC_STATIC_RUNTIME 
-  "MSVC only: build with /MT instead of /MD" 
+option(RPCLIB_MSVC_STATIC_RUNTIME
+  "MSVC only: build with /MT instead of /MD"
   OFF)
 
 #
 # Other configuration values
 #
-set(RPCLIB_DEFAULT_PORT 8080 
+set(RPCLIB_DEFAULT_PORT 8080
   CACHE STRING "Default port used for running tests and examples")
-set(RPCLIB_DEFAULT_BUFFER_SIZE "1024 << 10" 
+set(RPCLIB_DEFAULT_BUFFER_SIZE "1024 << 10"
   CACHE STRING "Default buffer size")
-set(RPCLIB_CXX_STANDARD 11 CACHE STRING 
+set(RPCLIB_CXX_STANDARD 11 CACHE STRING
   "C++ version used to build rpclib (Currently: Only 11 and 14 supported)")
 
 if(RPCLIB_GENERATE_COMPDB)
@@ -45,9 +61,13 @@ if(RPCLIB_GENERATE_COMPDB)
   add_custom_command(PROJECT_NAME ${PROJECT_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E
     copy ${CMAKE_BINARY_DIR}/compile_commands.json ${CMAKE_BINARY_DIR}/../compile_commands.json)
+
+  add_custom_command(PROJECT_NAME "emu${PROJECT_NAME}" POST_BUILD
+          COMMAND ${CMAKE_COMMAND} -E
+          copy ${CMAKE_BINARY_DIR}/compile_commands.json ${CMAKE_BINARY_DIR}/../compile_commands.json)
 endif()
 
-if(NOT ${RPCLIB_CXX_STANDARD} EQUAL 14 AND 
+if(NOT ${RPCLIB_CXX_STANDARD} EQUAL 14 AND
    NOT ${RPCLIB_CXX_STANDARD} EQUAL 11)
   message(fatal_error "Unsupported C++ standard: ${RPCLIB_CXX_STANDARD}")
 endif()
@@ -90,7 +110,7 @@ set(DEP_SOURCES
   ${RPCLIB_DEPENDENCIES}/src/format.cc
   ${RPCLIB_DEPENDENCIES}/src/posix.cc)
 
-add_library(${PROJECT_NAME}
+add_library(${PROJECT_NAME} SHARED
   lib/rpc/dispatcher.cc
   lib/rpc/server.cc
   lib/rpc/client.cc
@@ -106,6 +126,9 @@ add_library(${PROJECT_NAME}
   ${DEP_HEADERS}
   ${RPCLIB_HEADERS})
 
+set(VER ${MAJOR}.${MINOR}.${PATCH})
+set_target_properties("${PROJECT_NAME}" PROPERTIES VERSION ${VER} SOVERSION
+        ${MAJOR})
 # Perform steps and checks required for MSVC support
 rpclib_msvc_support()
 
@@ -113,6 +136,7 @@ set(RPCLIB_BUILD_FLAGS "") # reset flags
 
 if(RPCLIB_ENABLE_COVERAGE)
   enable_coverage(${PROJECT_NAME})
+  enable_coverage(emu${PROJECT_NAME})
 endif()
 
 if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
@@ -140,7 +164,7 @@ if (RPCLIB_EXTRA_BUILD_FLAGS)
   list(APPEND RPCLIB_BUILD_FLAGS ${RPCLIB_EXTRA_BUILD_FLAGS})
 endif()
 
-target_compile_definitions(${PROJECT_NAME} 
+target_compile_definitions(${PROJECT_NAME}
   PRIVATE
     "${RPCLIB_COMPILE_DEFINITIONS}"
     "${RPCLIB_ARCH_DEF}"
@@ -177,7 +201,7 @@ target_include_directories(
   PRIVATE ${RPCLIB_DEPENDENCIES}/include
   )
 
-install(TARGETS ${PROJECT_NAME} DESTINATION lib EXPORT rpclibTargets)
+install(TARGETS ${PROJECT_NAME} DESTINATION ${LIBDIR} EXPORT rpclibTargets)
 install(DIRECTORY include/
   DESTINATION include
   FILES_MATCHING
@@ -216,7 +240,7 @@ write_basic_package_version_file(
   COMPATIBILITY AnyNewerVersion
   )
 
-set(CONFIG_PACKAGE_LOCATION lib/cmake/rpclib)
+set(CONFIG_PACKAGE_LOCATION ${LIBDIR}/cmake/rpclib)
 set(INCLUDE_INSTALL_DIR include/ )
 
 configure_package_config_file(cmake/rpclibConfig.cmake.in
@@ -248,7 +272,7 @@ if(NOT MSVC)  # Don't install pkg-config files when building with MSVC
   # Variables for pkg-config files
   set(prefix "${CMAKE_INSTALL_PREFIX}")
   set(exec_prefix "")
-  set(libdir "${CMAKE_INSTALL_PREFIX}/lib")
+  set(libdir "${CMAKE_INSTALL_LIBDIR}")
   set(includedir "${CMAKE_INSTALL_PREFIX}/include")
   set(rpclib_version ${PROJECT_VERSION})
   get_target_property(rpclib_cflags ${PROJECT_NAME} COMPILE_OPTIONS)
