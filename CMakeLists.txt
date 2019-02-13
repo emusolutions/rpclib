@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.3.1)
 set(MAJOR 2)
 set(MINOR 2)
 set(PATCH 1)
-set(CANDIDATE r2)
+set(CANDIDATE r3)
 
 project(rpc VERSION ${MAJOR}.${MINOR}.${PATCH})
 
@@ -128,8 +128,7 @@ add_library(${PROJECT_NAME} SHARED
   ${RPCLIB_HEADERS})
 
 set(VER ${MAJOR}.${MINOR}.${PATCH}-${CANDIDATE})
-set_target_properties("${PROJECT_NAME}" PROPERTIES VERSION ${VER} SOVERSION
-        ${MAJOR})
+#set_target_properties("${PROJECT_NAME}" PROPERTIES VERSION ${VER} SOVERSION ${MAJOR})
 # Perform steps and checks required for MSVC support
 rpclib_msvc_support()
 
