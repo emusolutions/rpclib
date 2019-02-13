@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.3.1)
 set(MAJOR 2)
 set(MINOR 2)
 set(PATCH 1)
-set(CANDIDATE r1)
+set(CANDIDATE r2)
 
 project(rpc VERSION ${MAJOR}.${MINOR}.${PATCH})
 
@@ -21,7 +21,7 @@ include(check_warning_flag)
 #endif ()
 
 if (NOT LIBDIR)
-   set(LIBDIR "lib")
+   set(LIBDIR "/usr/lib64")
    message("set LIBDIR=${LIBDIR}")
 endif ()
 
