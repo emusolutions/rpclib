@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.3.1)
 set(MAJOR 2)
 set(MINOR 2)
 set(PATCH 1)
-set(CANDIDATE r0)
+set(CANDIDATE r1)
 
 project(rpc VERSION ${MAJOR}.${MINOR}.${PATCH})
 
@@ -15,10 +15,10 @@ include(msvc_support)
 include(coverage)
 include(check_warning_flag)
 
-if (CMAKE_INSTALL_LIBDIR)
-   get_filename_component(LIBDIR "${CMAKE_INSTALL_LIBDIR}" NAME)
-   message("set LIBDIR=${LIBDIR}")
-endif ()
+#if (CMAKE_INSTALL_LIBDIR)
+#   get_filename_component(LIBDIR "${CMAKE_INSTALL_LIBDIR}" NAME)
+#   message("set LIBDIR=${LIBDIR}")
+#endif ()
 
 if (NOT LIBDIR)
    set(LIBDIR "lib")
@@ -202,7 +202,8 @@ target_include_directories(
   PRIVATE ${RPCLIB_DEPENDENCIES}/include
   )
 
-install(TARGETS ${PROJECT_NAME} DESTINATION ${LIBDIR} EXPORT rpclibTargets)
+#install(TARGETS ${PROJECT_NAME} DESTINATION ${LIBDIR} EXPORT rpclibTargets)
+install(TARGETS ${PROJECT_NAME} DESTINATION ${LIBDIR})
 install(DIRECTORY include/
   DESTINATION include
   FILES_MATCHING
@@ -250,21 +251,21 @@ configure_package_config_file(cmake/rpclibConfig.cmake.in
   PATH_VARS INCLUDE_INSTALL_DIR
   )
 
-export(EXPORT rpclibTargets
-  FILE "${CMAKE_CURRENT_BINARY_DIR}/cmake/rpclibTargets.cmake"
-  NAMESPACE rpclib::
-  )
+#export(EXPORT rpclibTargets
+#  FILE "${CMAKE_CURRENT_BINARY_DIR}/cmake/rpclibTargets.cmake"
+#  NAMESPACE rpclib::
+#  )
 
-install(EXPORT rpclibTargets
-  FILE rpclibTargets.cmake
-  NAMESPACE rpclib::
-  DESTINATION ${CONFIG_PACKAGE_LOCATION}
-  )
-install(FILES
-  ${CMAKE_CURRENT_BINARY_DIR}/cmake/rpclibConfig.cmake
-  ${CMAKE_CURRENT_BINARY_DIR}/cmake/rpclibConfigVersion.cmake
-  DESTINATION ${CONFIG_PACKAGE_LOCATION}
-  )
+#install(EXPORT rpclibTargets
+#  FILE rpclibTargets.cmake
+#  NAMESPACE rpclib::
+#  DESTINATION ${CONFIG_PACKAGE_LOCATION}
+#  )
+#install(FILES
+#  ${CMAKE_CURRENT_BINARY_DIR}/cmake/rpclibConfig.cmake
+#  ${CMAKE_CURRENT_BINARY_DIR}/cmake/rpclibConfigVersion.cmake
+#  DESTINATION ${CONFIG_PACKAGE_LOCATION}
+#  )
 
 #
 # Pkg-config
